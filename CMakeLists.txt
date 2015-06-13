@@ -4,7 +4,7 @@ project(FSM)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(SOURCE_FILES main.cpp)
-add_executable(FSM ${SOURCE_FILES})
+add_executable(FSM ${SOURCE_FILES} BoostFSM.h BoostFSM.cpp)
 
 set(BOOST_ROOT "/Users/zesst/boost/boost_1_58_0")
 set(Boost_NO_SYSTEM_PATHS ON)
