@@ -19,8 +19,8 @@ BOOST_MSM_EUML_ACTION(state_entry)
     }
 };
 
-BOOST_MSM_EUML_STATE(state_entry, SocketDisconnected)
-BOOST_MSM_EUML_STATE(state_entry, SocketConnected)
+BOOST_MSM_EUML_STATE((state_entry), SocketDisconnected)
+BOOST_MSM_EUML_STATE((state_entry), SocketConnected)
 BOOST_MSM_EUML_EVENT(Connected)
 BOOST_MSM_EUML_EVENT(Disconnected)
 
