@@ -6,12 +6,16 @@
 namespace msm = boost::msm;
 using namespace boost::msm::front::euml;
 
+template <class Fsm, class State>
+void HandleStateEnter(Fsm &fsm, State &state);
+
 BOOST_MSM_EUML_ACTION(state_entry)
 {
     template <class Event, class Fsm, class State>
     void operator()(const Event &ev, Fsm &fsm, State &state) const
     {
         std::cout << "Entering" << std::endl;
+        HandleStateEnter(fsm, state);
     }
 };
 
@@ -30,49 +34,54 @@ BOOST_MSM_EUML_EVENT(Connected)
 BOOST_MSM_EUML_EVENT(Disconnected)
 
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(std::function<void(void)>, nextAction);
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, stopped);
 
 template <class Fsm, class Event>
-void transitTo(Fsm& fsm, const Event &event)
+void sendMessage(Fsm& fsm, const Event &event)
 {
     fsm.get_attribute(nextAction) = [&fsm, &event]{fsm.process_event(event);};
 }
 
-BOOST_MSM_EUML_ACTION(ConnectSocket)
+template <class Fsm> void Stop(Fsm& fsm)
 {
-    template <class Evt,class Fsm,class SourceState, class TargetState>
-    void operator()(Evt const& ,Fsm& fsm, SourceState&, TargetState& )
-    {
-        transitTo(fsm, Disconnected);
-    }
-};
-
-BOOST_MSM_EUML_ACTION(DisconnectSocket)
-{
-    template <class Evt,class Fsm,class SourceState, class TargetState>
-    void operator()(Evt const& ,Fsm& fsm, SourceState&, TargetState& )
-    {
-        transitTo(fsm, Connected);
-    }
-};
+    fsm.get_attribute(stopped) = true;
+}
 
 BOOST_MSM_EUML_TRANSITION_TABLE((
-    SocketDisconnected + Connected / ConnectSocket == SocketConnected,
-    SocketConnected + Disconnected / DisconnectSocket == SocketDisconnected
+    SocketDisconnected + Connected == SocketConnected,
+    SocketConnected + Disconnected == SocketDisconnected
 ), http_transition_table)
 
 BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
-(http_transition_table, init_ << SocketDisconnected, no_action, no_action, attributes_ << nextAction, configure_ << no_configure_),
+(http_transition_table, init_ << SocketDisconnected, no_action, no_action, attributes_ << nextAction << stopped, configure_ << no_configure_),
 http_state_machine)
 
-int main() {
+void EventLoop() {
     auto fsm = msm::back::state_machine<http_state_machine>();
     auto firstAction = [&fsm]{
         fsm.process_event(Connected);
     };
     fsm.get_attribute(nextAction) = firstAction;
-    while(true) {
-        std::cout << *fsm.current_state() << std::endl;
+    while(!fsm.get_attribute(stopped)) {
+        std::__1::cout << *fsm.current_state() << std::__1::endl;
         auto next = fsm.get_attribute(nextAction);
         next();
     }
+}
+
+int main() {
+    EventLoop();
 };
+
+template <class Fsm>
+void HandleStateEnter(Fsm &fsm, decltype(SocketConnected) &state)
+{
+    sendMessage(fsm, Disconnected);
+}
+
+template <class Fsm>
+void HandleStateEnter(Fsm &fsm, decltype(SocketDisconnected) &state)
+{
+    sendMessage(fsm, Connected);
+    Stop(fsm);
+}
