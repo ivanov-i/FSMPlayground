@@ -14,22 +14,13 @@ BOOST_MSM_EUML_ACTION(state_entry)
     template <class Event, class Fsm, class State>
     void operator()(const Event &ev, Fsm &fsm, State &state) const
     {
-        std::cout << "Entering" << std::endl;
+        std::cout << "entering" << std::endl;
         HandleStateEnter(fsm, state);
     }
 };
 
-BOOST_MSM_EUML_ACTION(state_exit)
-{
-    template <class Event, class Fsm, class State>
-    void operator()(const Event &ev, Fsm &fsm, State &state) const
-    {
-        std::cout << "Exiting\n";
-    }
-};
-
-BOOST_MSM_EUML_STATE((state_entry, state_exit), SocketDisconnected)
-BOOST_MSM_EUML_STATE((state_entry, state_exit), SocketConnected)
+BOOST_MSM_EUML_STATE(state_entry, SocketDisconnected)
+BOOST_MSM_EUML_STATE(state_entry, SocketConnected)
 BOOST_MSM_EUML_EVENT(Connected)
 BOOST_MSM_EUML_EVENT(Disconnected)
 
@@ -74,13 +65,13 @@ int main() {
 };
 
 template <class Fsm>
-void HandleStateEnter(Fsm &fsm, decltype(SocketConnected) &state)
+static void HandleStateEnter(Fsm &fsm, decltype(SocketConnected) &state)
 {
     sendMessage(fsm, Disconnected);
 }
 
 template <class Fsm>
-void HandleStateEnter(Fsm &fsm, decltype(SocketDisconnected) &state)
+static void HandleStateEnter(Fsm &fsm, decltype(SocketDisconnected) &state)
 {
     sendMessage(fsm, Connected);
     Stop(fsm);
