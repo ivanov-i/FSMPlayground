@@ -1,6 +1,9 @@
-#include "BoostFSM.h"
+//#include "BoostFSM.h"
+#include "HomebrewFsm.h"
 
 int main() {
-    BoostFsm::EventLoop();
+//    BoostFsm::EventLoop();
+    auto fsm = MyFsm::FSM();
+    fsm.Run();
 };
 
