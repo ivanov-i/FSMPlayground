@@ -1,3 +1,5 @@
+#ifdef USE_BOOST_FSM
+
 #include <boost/msm/front/euml/euml.hpp>
 #include <boost/msm/front/euml/state_grammar.hpp>
 #include <boost/msm/back/state_machine.hpp>
@@ -77,3 +79,5 @@ namespace BoostFsm {
     }
 
 }
+
+#endif
